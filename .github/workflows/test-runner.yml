@@ -1,0 +1,28 @@
+name: Test Runner Connection
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
+
+jobs:
+  test-runner:
+    # Use 'self-hosted' to target the runner you've set up in your actions-runner directory.
+    # You can change this to 'ubuntu-latest', 'windows-latest', etc., if you want to use GitHub-hosted runners.
+    runs-on: LAPTOP-PQPQO94T
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Display Runner Information
+        run: |
+          echo "Runner OS: ${{ runner.os }}"
+          echo "Runner Architecture: ${{ runner.arch }}"
+          echo "Runner Name: ${{ runner.name }}"
+          echo "Workspace paths: ${{ github.workspace }}"
+
+      - name: Test Basic Connectivity
+        run: |
+          echo "Runner is successfully connected and executing jobs!"
