@@ -1,1 +1,1 @@
-test
+This repository is use for dvna project scan, Integrating Semgrep and Trivy and generating the reports.
