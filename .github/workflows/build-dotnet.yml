@@ -1,0 +1,57 @@
+name: Build .NET
+
+on:
+  workflow_call:
+
+    inputs:
+
+      dotnet-version:
+        type: string
+        default: "9.0"
+
+      build-command:
+        type: string
+        default: "dotnet build --configuration Release"
+
+      test-command:
+        type: string
+        default: "dotnet test --configuration Release"
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:9.0
+
+    outputs:
+      artifact-path: publish
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ hashFiles('**/*.csproj') }}
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: ${{ inputs.build-command }}
+
+      - name: Test
+        run: ${{ inputs.test-command }}
+
+      - name: Publish
+        run: dotnet publish -c Release -o publish
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dotnet-build
+          path: publish

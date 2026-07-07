@@ -1,0 +1,65 @@
+name: Enterprise DevSecOps
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  security-events: write
+  id-token: write
+  packages: write
+
+jobs:
+
+  security:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/metadata
+
+      - uses: ./.github/actions/branch-validation
+
+      - uses: ./.github/actions/commit-validation
+
+      - uses: ./.github/actions/cache
+
+      - uses: ./.github/actions/reusable-build.yml
+
+      - uses: ./.github/actions/unit-test
+
+      - uses: ./.github/actions/coverage
+
+      - uses: ./.github/actions/sonarqube
+
+      - uses: ./.github/actions/semgrep
+
+      - uses: ./.github/actions/gitleaks
+
+      - uses: ./.github/actions/checkov
+
+      - uses: ./.github/actions/osv
+
+      - uses: ./.github/actions/license
+
+      - uses: ./.github/actions/sbom
+
+      - uses: ./.github/actions/grype
+
+      - uses: ./.github/actions/opa
+
+      - uses: ./.github/actions/docker
+
+      - uses: ./.github/actions/trivy
+
+      - uses: ./.github/actions/cosign
+
+      - uses: ./.github/actions/provenance
+
+      - uses: ./.github/actions/upload

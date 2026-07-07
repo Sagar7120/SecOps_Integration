@@ -1,0 +1,114 @@
+name: Reusable Build
+
+on:
+  workflow_call:
+    outputs:
+      language:
+        description: Detected language
+        value: ${{ jobs.detect.outputs.language }}
+
+      artifact-path:
+        description: Build Artifact
+        value: ${{ jobs.detect.outputs.artifact }}
+
+permissions:
+  contents: read
+
+jobs:
+
+  detect:
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      language: ${{ steps.detect.outputs.language }}
+      artifact: ${{ steps.detect.outputs.artifact }}
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - id: detect
+
+        shell: bash
+
+        run: |
+
+          echo "Detecting project..."
+
+          if [ -f "pom.xml" ]; then
+            echo "language=java-maven" >> $GITHUB_OUTPUT
+            echo "artifact=target" >> $GITHUB_OUTPUT
+
+          elif [ -f "build.gradle" ] || [ -f "build.gradle.kts" ]; then
+            echo "language=java-gradle" >> $GITHUB_OUTPUT
+            echo "artifact=build/libs" >> $GITHUB_OUTPUT
+
+          elif [ -f "package.json" ]; then
+            echo "language=node" >> $GITHUB_OUTPUT
+            echo "artifact=dist" >> $GITHUB_OUTPUT
+
+          elif [ -f "requirements.txt" ] || [ -f "pyproject.toml" ]; then
+            echo "language=python" >> $GITHUB_OUTPUT
+            echo "artifact=dist" >> $GITHUB_OUTPUT
+
+          elif ls *.csproj >/dev/null 2>&1 || ls *.sln >/dev/null 2>&1; then
+            echo "language=dotnet" >> $GITHUB_OUTPUT
+            echo "artifact=publish" >> $GITHUB_OUTPUT
+
+          elif [ -f "go.mod" ]; then
+            echo "language=go" >> $GITHUB_OUTPUT
+            echo "artifact=bin" >> $GITHUB_OUTPUT
+
+          else
+            echo "Unsupported project"
+            exit 1
+          fi
+
+  java-maven:
+
+    needs: detect
+
+    if: needs.detect.outputs.language == 'java-maven'
+
+    uses: ./.github/actions/build-java.yml
+
+  java-gradle:
+
+    needs: detect
+
+    if: needs.detect.outputs.language == 'java-gradle'
+
+    uses: ./.github/actions/build-gradle.yml
+
+  node:
+
+    needs: detect
+
+    if: needs.detect.outputs.language == 'node'
+
+    uses: ./.github/actions/build-node.yml
+
+  python:
+
+    needs: detect
+
+    if: needs.detect.outputs.language == 'python'
+
+    uses: ./.github/actions/build-python.yml
+
+  dotnet:
+
+    needs: detect
+
+    if: needs.detect.outputs.language == 'dotnet'
+
+    uses: ./.github/actions/build-dotnet.yml
+
+  go:
+
+    needs: detect
+
+    if: needs.detect.outputs.language == 'go'
+
+    uses: ./.github/actions/build-go.yml

@@ -1,0 +1,58 @@
+name: Build Go
+
+on:
+  workflow_call:
+
+    inputs:
+
+      go-version:
+        type: string
+        default: "1.24"
+
+      build-command:
+        type: string
+        default: "go build ./..."
+
+      test-command:
+        type: string
+        default: "go test ./..."
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    container:
+      image: golang:1.24-bookworm
+
+    outputs:
+      artifact-path: bin
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            /go/pkg/mod
+            ~/.cache/go-build
+          key: go-${{ hashFiles('**/go.sum') }}
+
+      - name: Download Modules
+        run: go mod download
+
+      - name: Build
+        run: |
+          mkdir -p bin
+          ${{ inputs.build-command }}
+
+      - name: Test
+        run: ${{ inputs.test-command }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-build
+          path: bin

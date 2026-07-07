@@ -1,0 +1,55 @@
+name: Build Node.js
+
+on:
+  workflow_call:
+
+    inputs:
+
+      node-version:
+        type: string
+        default: "22"
+
+      build-command:
+        type: string
+        default: "npm run build"
+
+      test-command:
+        type: string
+        default: "npm test"
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    container:
+      image: node:22-bookworm
+
+    outputs:
+      artifact-path: dist
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Restore npm Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build
+        run: ${{ inputs.build-command }}
+
+      - name: Unit Test
+        run: ${{ inputs.test-command }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-build
+          path: dist
